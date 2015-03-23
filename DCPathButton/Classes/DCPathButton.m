@@ -213,9 +213,10 @@
 
         CGFloat currentAngel = i / ((CGFloat)self.itemButtons.count + 1);
         CGPoint farPoint = [self createEndPointWithRadius:self.bloomRadius + 5.0f andAngel:currentAngel];
+
+        CAAnimationGroup *foldAnimation = [self foldAnimationFromPoint:itemButton.center withFarPoint:farPoint];
         foldAnimation.delegate = self;
         [foldAnimation setValue:@"groupAnimation" forKey:@"animationName"];
-        CAAnimationGroup *foldAnimation = [self foldAnimationFromPoint:itemButton.center withFarPoint:farPoint];
 
         [itemButton.layer addAnimation:foldAnimation forKey:@"foldAnimation"];
         itemButton.center = self.pathCenterButtonBloomCenter;
