@@ -552,8 +552,6 @@
         if ([animationName isEqualToString:@"groupAnimation"]) {
             // your groupAnimation has ended
             self.userInteractionEnabled = YES;
-        } else {
-            NSLog(@"fuck");
         }
     }
 }
