@@ -217,6 +217,7 @@
 
 - (void)centerButtonTapped
 {
+    self.userInteractionEnabled = NO;
     self.isBloom? [self pathCenterButtonFold] : [self pathCenterButtonBloom];
 }
 
@@ -262,6 +263,9 @@
         CGPoint farPoint = [self createEndPointWithRadius:self.bloomRadius + 5.0f andAngel:currentAngel];
         
         CAAnimationGroup *foldAnimation = [self foldAnimationFromPoint:itemButton.center withFarPoint:farPoint];
+
+        foldAnimation.delegate = self;
+        [foldAnimation setValue:@"groupAnimation" forKey:@"animationName"];
         
         [itemButton.layer addAnimation:foldAnimation forKey:@"foldAnimation"];
         itemButton.center = self.pathCenterButtonBloomCenter;
@@ -352,7 +356,6 @@
 
 - (void)pathCenterButtonBloom
 {
-    
     // Play bloom sound
     //
     if (self.soundsEnable) {
@@ -423,7 +426,8 @@
         CAAnimationGroup *bloomAnimation = [self bloomAnimationWithEndPoint:endPoint
                                                                   andFarPoint:farPoint
                                                                 andNearPoint:nearPoint];
-        
+        bloomAnimation.delegate = self;
+        [bloomAnimation setValue:@"groupAnimation" forKey:@"animationName"];
         [pathItemButton.layer addAnimation:bloomAnimation forKey:@"bloomAnimation"];
         pathItemButton.center = endPoint;
         
@@ -539,5 +543,18 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer NS_AVAILABLE_IOS(7_0)
 {
     return YES;
+}
+
+- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
+{
+    if (flag) {
+        NSString *animationName = [anim valueForKey:@"animationName"];
+        if ([animationName isEqualToString:@"groupAnimation"]) {
+            // your groupAnimation has ended
+            self.userInteractionEnabled = YES;
+        } else {
+            NSLog(@"fuck");
+        }
+    }
 }
 @end
