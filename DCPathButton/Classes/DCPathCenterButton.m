@@ -36,7 +36,6 @@
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     self.highlighted = YES;
-    
     // Center button Begin Tapped
     if ([_delegate respondsToSelector:@selector(centerButtonTapped)]) {
         [_delegate centerButtonTapped];

@@ -35,6 +35,8 @@
 @property (assign, nonatomic) SystemSoundID foldSound;
 @property (assign, nonatomic) SystemSoundID selectedSound;
 
+@property (assign, nonatomic) NSInteger animationCount;
+
 
 @end
 
@@ -46,6 +48,7 @@
 {
     if (self = [super init]) {
 
+        self.animationCount = 0;
         // Configure center and high light center image
         //
         self.centerImage = centerImage;
@@ -185,8 +188,9 @@
 
 - (void)centerButtonTapped
 {
-    self.userInteractionEnabled = NO;
-    self.isBloom? [self pathCenterButtonFold] : [self pathCenterButtonBloom];
+    //    self.pathCenterButton.userInteractionEnabled = NO;
+    [self setButtoninteractionEnabled:NO];
+    self.isBloom ? [self pathCenterButtonFold] : [self pathCenterButtonBloom];
 }
 
 #pragma mark - Caculate The Item's End Point
@@ -213,15 +217,14 @@
 
         CGFloat currentAngel = i / ((CGFloat)self.itemButtons.count + 1);
         CGPoint farPoint = [self createEndPointWithRadius:self.bloomRadius + 5.0f andAngel:currentAngel];
-
         CAAnimationGroup *foldAnimation = [self foldAnimationFromPoint:itemButton.center withFarPoint:farPoint];
         foldAnimation.delegate = self;
         [foldAnimation setValue:@"groupAnimation" forKey:@"animationName"];
 
         [itemButton.layer addAnimation:foldAnimation forKey:@"foldAnimation"];
         itemButton.center = self.pathCenterButtonBloomCenter;
-
     }
+    self.animationCount = self.itemButtons.count;
 
     [self bringSubviewToFront:self.pathCenterButton];
 
@@ -305,7 +308,6 @@
 
 - (void)pathCenterButtonBloom
 {
-
     // Play bloom sound
     //
     AudioServicesPlaySystemSound(self.bloomSound);
@@ -370,19 +372,19 @@
         CGPoint nearPoint = [self createEndPointWithRadius:self.bloomRadius - 5.0f andAngel:currentAngel];
 
         CAAnimationGroup *bloomAnimation = [self bloomAnimationWithEndPoint:endPoint
-                                                                  andFarPoint:farPoint
-                                                                andNearPoint:nearPoint];
+                                                                andFarPoint:farPoint
+                                                               andNearPoint:nearPoint];
 
-    bloomAnimation.delegate = self;
-    [bloomAnimation setValue:@"groupAnimation" forKey:@"animationName"];
+        bloomAnimation.delegate = self;
+        [bloomAnimation setValue:@"groupAnimation" forKey:@"animationName"];
 
         [pathItemButton.layer addAnimation:bloomAnimation forKey:@"bloomAnimation"];
         pathItemButton.center = endPoint;
 
     }
+    self.animationCount = self.itemButtons.count;
 
     _bloom = YES;
-
 }
 
 - (CAAnimationGroup *)bloomAnimationWithEndPoint:(CGPoint)endPoint andFarPoint:(CGPoint)farPoint andNearPoint:(CGPoint)nearPoint
@@ -434,7 +436,9 @@
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     // Tap the bottom area, excute the fold animation
-    [self pathCenterButtonFold];
+    if (self.pathCenterButton.userInteractionEnabled) {
+        [self pathCenterButtonFold];
+    }
 }
 
 #pragma mark - DCPathButton Item Delegate
@@ -480,14 +484,29 @@
     }
 }
 
+#pragma mark - animation delegate
+
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
 {
     if (flag) {
         NSString *animationName = [anim valueForKey:@"animationName"];
         if ([animationName isEqualToString:@"groupAnimation"]) {
             // your groupAnimation has ended
-            self.userInteractionEnabled = YES;
+            //            self.pathCenterButton.userInteractionEnabled = YES;
+            self.animationCount = self.animationCount - 1;
+            if (self.animationCount == 0) {
+                [self setButtoninteractionEnabled:YES];
+            }
         }
+    }
+}
+
+- (void)setButtoninteractionEnabled:(BOOL)enabled
+{
+    self.pathCenterButton.userInteractionEnabled = enabled;
+    for (int i = 1; i <= self.itemButtons.count; i++) {
+        DCPathItemButton *pathItemButton = self.itemButtons[i - 1];
+        pathItemButton.userInteractionEnabled = enabled;
     }
 }
 
